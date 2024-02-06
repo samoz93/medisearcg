@@ -10,7 +10,6 @@ A nodejs library to use MediSearch api
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
@@ -21,7 +20,7 @@ A nodejs library to use MediSearch api
 
 Sample usage
 
-```
+```javascript
    const agent = new Agent({
     api_key: "c269c6fc-7f4e-47b2-831d-43418b7d1fce",
   });
