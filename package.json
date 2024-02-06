@@ -1,0 +1,47 @@
+{
+  "name": "medi-search",
+  "version": "1.1.0",
+  "description": "Api to use medi_search",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "jest",
+    "start": "nodemon src/index.ts",
+    "prepare-publish": " npm run test && pnpm run build",
+    "publish:minor": "pnpm run prepare-publish && pnpm version minor && pnpm publish"
+  },
+  "keywords": [
+    "medi_search",
+    "search",
+    "medicine"
+  ],
+  "author": "Sameh",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/ws": "^8.5.10",
+    "add": "^2.0.6",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.3",
+    "or": "^0.2.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "yarn": "^1.22.21"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.202",
+    "i": "^0.3.7",
+    "lodash": "^4.17.21",
+    "npm": "^10.4.0",
+    "rxjs": "^7.8.1",
+    "socket.io-client": "^4.7.4",
+    "ws": "^8.16.0"
+  }
+}
