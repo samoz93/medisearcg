@@ -61,12 +61,22 @@ export class Conversation {
 
   private lastResponse?: ILlmResponse;
 
+  private get whoNext() {
+    return this.chat.length % 2 === 0 ? "user" : "agent";
+  }
+
   private incomingMessagePipe = (
     data: ILlmResponse | IErrorResponse | IArticlesResponse | IErrorResponse
   ): ILlmResponse | IErrorResponse | IArticlesResponse | IErrorResponse => {
     switch (data.event) {
       case "articles":
-        this.chat.push(this.lastResponse!.text);
+        // Articles event may be triggered multiple time, a hacky fix to not throw off the order of the chat
+        if (this.whoNext === "agent") {
+          this.chat.push(this.lastResponse!.text);
+        } else {
+          this.chat[this.chat.length - 1] = this.lastResponse!.text;
+        }
+
         return {
           ...data,
           lastResponse: this.lastResponse!,
