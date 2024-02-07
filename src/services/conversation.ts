@@ -33,13 +33,17 @@ export class Conversation {
 
     // Save the observable and the unsubscribe function
     this.connectionSettings.client.addEventListener("message", (data) => {
-      const response = this.incomingMessagePipe(JSON.parse(data.toString()));
-      this.obs.next(response);
+      if (data.data) {
+        const response = this.incomingMessagePipe(
+          JSON.parse(data.data?.toString())
+        );
+        this.obs.next(response);
+      }
     });
   }
 
   get allEventsStream() {
-    return this.obs;
+    return this.obs.asObservable();
   }
 
   getEventStream(event: IResponseTypes) {
