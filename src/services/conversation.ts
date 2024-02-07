@@ -34,9 +34,14 @@ export class Conversation {
     // Save the observable and the unsubscribe function
     this.connectionSettings.client.addEventListener("message", (data) => {
       try {
-        const response = this.incomingMessagePipe(
-          JSON.parse(data.data!.toString())
-        );
+        const response = JSON.parse(data.data!.toString());
+        // Lock the conversation if the response is generating
+        if (["llm_response", "articles"].includes(response.event)) {
+          this.isGenerating = true;
+        } else {
+          this.isGenerating = false;
+        }
+        this.incomingMessagePipe(response);
         this.obs.next(response);
       } catch (error) {
         // Error parsing the response
@@ -74,7 +79,6 @@ export class Conversation {
           lastResponse: this.lastResponse!,
         };
       case "error":
-        this.isGenerating = false;
         // Remove the user's last question if the response is an error
         this.chat.pop();
         return data;
@@ -82,7 +86,6 @@ export class Conversation {
         this.lastResponse = data as ILlmResponse;
         return data;
       default:
-        this.isGenerating = false;
         // Remove the user's last question if the response is an error
         this.chat.pop();
         return {
@@ -114,8 +117,6 @@ export class Conversation {
       // TODO: handle this asynchronously, await the interruption before sending a new message
       this.interrupt();
     }
-
-    this.isGenerating = true;
 
     // Add the question to the chat
     this.chat.push(question);
