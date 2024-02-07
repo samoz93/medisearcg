@@ -1,6 +1,6 @@
 {
   "name": "medi-search",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Api to use medi_search",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
