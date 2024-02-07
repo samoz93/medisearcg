@@ -36,7 +36,7 @@ export class Conversation {
       try {
         const response = JSON.parse(data.data!.toString()) as IResponseUnion;
         // Lock the conversation if the response is generating
-        if (["llm_response"].includes(response.event)) {
+        if (response.event === "llm_response") {
           this.isGenerating = true;
         } else {
           this.isGenerating = false;
