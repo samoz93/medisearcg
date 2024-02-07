@@ -21,15 +21,15 @@ export class Agent {
       "wss://public.backend.medisearch.io:443/ws/medichat/api"
     );
 
-    this.client.onerror = (err) => {
+    this.client.addEventListener("error", (err) => {
       this._isReady.next(false);
       this._isReady.complete();
-    };
+    });
 
-    this.client.onopen = () => {
+    this.client.addEventListener("open", () => {
       this._isReady.next(true);
       this._isReady.complete();
-    };
+    });
   }
 
   generateID() {

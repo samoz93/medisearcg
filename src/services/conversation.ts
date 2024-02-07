@@ -32,10 +32,10 @@ export class Conversation {
     this.uuid = connectionSettings.uuid;
 
     // Save the observable and the unsubscribe function
-    this.connectionSettings.client.onmessage = (data) => {
+    this.connectionSettings.client.addEventListener("message", (data) => {
       const response = this.incomingMessagePipe(JSON.parse(data.toString()));
       this.obs.next(response);
-    };
+    });
   }
 
   get allEventsStream() {

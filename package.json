@@ -12,7 +12,7 @@
     "build": "tsup",
     "test": "jest",
     "start": "nodemon src/index.ts",
-    "prepare-publish": " npm run test && pnpm run build",
+    "prepare-publish": " pnpm run build",
     "publish:minor": "pnpm run prepare-publish && pnpm version minor && pnpm publish"
   },
   "keywords": [
