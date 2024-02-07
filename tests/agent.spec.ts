@@ -1,7 +1,5 @@
 import { Agent } from "../src";
 
-jest.mock("ws");
-
 describe("Agent Api test suit", () => {
   let agent: Agent;
   beforeEach(() => {

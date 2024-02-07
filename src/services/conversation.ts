@@ -1,5 +1,4 @@
 import { Subject, filter } from "rxjs";
-import WebSocket from "ws";
 import {
   ICloseEvent,
   IConversationSettings,
@@ -33,10 +32,10 @@ export class Conversation {
     this.uuid = connectionSettings.uuid;
 
     // Save the observable and the unsubscribe function
-    this.connectionSettings.client.on("message", (data) => {
+    this.connectionSettings.client.onmessage = (data) => {
       const response = this.incomingMessagePipe(JSON.parse(data.toString()));
       this.obs.next(response);
-    });
+    };
   }
 
   get allEventsStream() {
