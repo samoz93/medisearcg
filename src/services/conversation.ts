@@ -1,4 +1,4 @@
-import { Subject, filter } from "rxjs";
+import { Subject } from "rxjs";
 import {
   ICloseEvent,
   IConversationSettings,
@@ -33,11 +33,13 @@ export class Conversation {
 
     // Save the observable and the unsubscribe function
     this.connectionSettings.client.addEventListener("message", (data) => {
-      if (data.data) {
+      try {
         const response = this.incomingMessagePipe(
-          JSON.parse(data.data?.toString())
+          JSON.parse(data.data!.toString())
         );
         this.obs.next(response);
+      } catch (error) {
+        // Error parsing the response
       }
     });
   }
@@ -46,11 +48,7 @@ export class Conversation {
     return this.obs.asObservable();
   }
 
-  getEventStream(event: IResponseTypes) {
-    return this.allEventsStream.pipe(
-      filter((message) => message.event === event)
-    );
-  }
+  getEventStream(event: IResponseTypes) {}
 
   get conversationHistory() {
     return this.chat;
