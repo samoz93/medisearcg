@@ -1,4 +1,5 @@
-import { filter, map } from "rxjs";
+import { Subject } from "rxjs";
+import WebSocket from "ws";
 import {
   IArticlesResponse,
   ICloseEvent,
@@ -8,9 +9,7 @@ import {
   ILlmResponse,
   IMessageEvent,
   IResponseTypes,
-  IResponseUnion,
 } from "../types";
-import { WebSocketClient } from "./webSocketClient";
 
 export class Conversation {
   private chat: string[] = [];
@@ -18,12 +17,11 @@ export class Conversation {
   private obs;
   public readonly uuid: string;
   private unsub: () => void;
-
   constructor(
     private connectionSettings: {
       api_key: string;
       uuid: string;
-      client: WebSocketClient;
+      client: WebSocket;
     },
     private conversationSettings: IConversationSettings & {
       previousConversations: string[];
@@ -37,23 +35,26 @@ export class Conversation {
     this.uuid = connectionSettings.uuid;
 
     // Create an observable for the conversation
-    const [obs, unsub] =
-      this.connectionSettings.client.getObservable<IResponseUnion>("message");
+    // const [obs, unsub] =
+    //   this.connectionSettings.client.getObservable<IResponseUnion>("message");
 
     // Save the observable and the unsubscribe function
-    this.obs = obs.pipe(map(this.incomingMessagePipe));
-    this.unsub = unsub;
+    this.connectionSettings.client.on("message", (data) => {
+      console.log("AAAA", data.toString());
+    });
+    this.obs = new Subject<IResponseTypes | undefined>();
+    this.unsub = () => void 0;
   }
 
   get allEventsStream() {
     return this.obs;
   }
 
-  getEventStream(event: IResponseTypes) {
-    return this.allEventsStream.pipe(
-      filter((message) => message.event === event)
-    );
-  }
+  // getEventStream(event: IResponseTypes) {
+  //   return this.allEventsStream.pipe(
+  //     filter((message) => message.event === event)
+  //   );
+  // }
 
   get conversationHistory() {
     return this.chat;
@@ -66,8 +67,10 @@ export class Conversation {
   }
 
   private incomingMessagePipe = (
-    data: ILlmResponse | IErrorResponse | IArticlesResponse | IErrorResponse
+    data: any
   ): ILlmResponse | IErrorResponse | IArticlesResponse | IErrorResponse => {
+    console.log("Incoming message", data.toString());
+
     switch (data.event) {
       case "articles":
         // Articles event may be triggered multiple time, a hacky fix to not throw off the order of the chat
@@ -114,6 +117,8 @@ export class Conversation {
   }
 
   ask(question: string) {
+    console.log("Asking question", question);
+
     if (this.isGenerating) {
       if (!this.interruptOnOverlappingRequest)
         throw new Error(
@@ -131,7 +136,9 @@ export class Conversation {
     this.sendMessage({
       event: "user_message",
       conversation: this.chat,
-      settings: this.conversationSettings,
+      settings: {
+        language: this.conversationSettings.language,
+      },
     });
   }
 

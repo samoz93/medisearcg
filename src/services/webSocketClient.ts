@@ -17,11 +17,15 @@ export class WebSocketClient {
   constructor(url: string) {
     this.client = new WebSocket(url);
     this.client.on("open", () => {
+      console.log("Connected");
+
       this._isReady.next(true);
       this._isReady.complete();
     });
 
     this.client.on("error", (error) => {
+      console.log("Error", error);
+
       this._isReady.next(false);
       this._isReady.complete();
     });
@@ -33,6 +37,7 @@ export class WebSocketClient {
     const obs = new Subject<T>();
     const sub = (raw: RawData) => {
       const data = JSON.parse(raw.toString("utf-8")) as T;
+      console.log(data);
       obs.next(data);
     };
 
@@ -42,10 +47,12 @@ export class WebSocketClient {
 
     this.client.on(event, sub);
 
-    return [obs.asObservable(), unsub];
+    return [obs, unsub];
   }
 
   send(data: any) {
+    console.log("Sending", data);
+
     this.client.send(JSON.stringify(data));
   }
 

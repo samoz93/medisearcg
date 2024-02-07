@@ -1,17 +1,49 @@
+import { BehaviorSubject, lastValueFrom } from "rxjs";
+import WebSocket from "ws";
 import { IConnection, IConversationSettings } from "../types";
 import { Conversation } from "./conversation";
-import { WebSocketClient } from "./webSocketClient";
 
 export class Agent {
-  private wsConnection: WebSocketClient;
+  private client: WebSocket;
+  private _isReady = new BehaviorSubject(false);
+
+  async isReady(): Promise<boolean> {
+    if (this._isReady.value || this.client.readyState === WebSocket.OPEN) {
+      return this._isReady.getValue();
+    }
+
+    return await lastValueFrom(this._isReady);
+  }
 
   conversations: Record<string, Conversation> = {};
 
   constructor(private connection: IConnection) {
-    this.wsConnection = new WebSocketClient(
+    this.client = new WebSocket(
       "wss://public.backend.medisearch.io:443/ws/medichat/api"
     );
+    this.client.on("error", (err) => {
+      console.log("Error", err);
+      this._isReady.next(false);
+      this._isReady.complete();
+    });
+    this.client.on("open", () => {
+      this._isReady.next(true);
+      this._isReady.complete();
+    });
   }
+
+  generateID() {
+    var id = "";
+    var characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 32; i++) {
+      id += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    return id;
+  }
+
   /**
    *
    * @interface createConversation
@@ -29,9 +61,12 @@ export class Agent {
     },
     interruptOnOverlappingRequest = false
   ) {
+    const ok = await this.isReady();
+
+    console.log("OK", ok);
+
     // Await the client to be ready
-    const isReady = await this.wsConnection.isReady();
-    if (!isReady) {
+    if (!ok) {
       throw new Error("Connection is closed. Please try again later.");
     }
 
@@ -43,13 +78,16 @@ export class Agent {
     }
 
     // Generate a new UUID for the conversation
-    const uuid = crypto.randomUUID().toString();
+    const uuid = this.generateID();
+    this.client.on("message", (data) => {
+      console.log("AAAA", data.toString());
+    });
     // Create a new conversation
     const convo = new Conversation(
       {
         api_key: this.connection.api_key,
         uuid,
-        client: this.wsConnection,
+        client: this.client,
       },
       {
         ...options.settings,
@@ -75,6 +113,6 @@ export class Agent {
   destroy() {
     Object.values(this.conversations).forEach((convo) => convo.close());
     this.conversations = {};
-    this.wsConnection.close();
+    this.client.close();
   }
 }
