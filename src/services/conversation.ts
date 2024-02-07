@@ -34,9 +34,9 @@ export class Conversation {
     // Save the observable and the unsubscribe function
     this.connectionSettings.client.addEventListener("message", (data) => {
       try {
-        const response = JSON.parse(data.data!.toString());
+        const response = JSON.parse(data.data!.toString()) as IResponseUnion;
         // Lock the conversation if the response is generating
-        if (["llm_response", "articles"].includes(response.event)) {
+        if (["llm_response"].includes(response.event)) {
           this.isGenerating = true;
         } else {
           this.isGenerating = false;
