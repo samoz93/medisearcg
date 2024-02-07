@@ -1,25 +1,14 @@
-import { Subject } from "rxjs";
-import { Agent, WebSocketClient } from "../src/services";
-import { ICommonEventOrResponse } from "../src/types";
+import { Agent } from "../src";
 
-jest.mock("../src/services/webSocketClient");
+jest.mock("ws");
 
 describe("Agent Api test suit", () => {
   let agent: Agent;
-  let obs: Subject<ICommonEventOrResponse>;
   beforeEach(() => {
     agent = new Agent({
       api_key: "1234",
     });
-    obs = new Subject<ICommonEventOrResponse>();
-
-    jest
-      .spyOn(WebSocketClient.prototype, "isReady")
-      .mockReturnValue(Promise.resolve(true));
-
-    jest
-      .spyOn(WebSocketClient.prototype, "getObservable")
-      .mockReturnValue([obs.asObservable(), () => {}]);
+    jest.spyOn(agent, "isReady").mockReturnValue(Promise.resolve(true));
   });
 
   test("Make sure we can create a conversation", async () => {
@@ -29,17 +18,13 @@ describe("Agent Api test suit", () => {
       },
       previousConversations: ["user", "agent"],
     });
-    expect(WebSocketClient).toHaveBeenCalledTimes(1);
-    expect(WebSocketClient.prototype.isReady).toHaveBeenCalledTimes(1);
     expect(conversation).toBeDefined();
     expect(agent.getAllConversation().length).toBe(1);
     expect(agent.getConversation(conversation.uuid)).toBe(conversation);
   });
 
   test("Make sure we fail if the client is not ready", async () => {
-    jest
-      .spyOn(WebSocketClient.prototype, "isReady")
-      .mockReturnValue(Promise.resolve(false));
+    jest.spyOn(agent, "isReady").mockReturnValue(Promise.resolve(false));
 
     expect(
       agent.createConversation({
@@ -51,10 +36,6 @@ describe("Agent Api test suit", () => {
   });
 
   test("Make sure we fail if the chat history is corrupt", async () => {
-    jest
-      .spyOn(WebSocketClient.prototype, "isReady")
-      .mockReturnValue(Promise.resolve(true));
-
     expect(
       agent.createConversation({
         settings: {
@@ -73,6 +54,5 @@ describe("Agent Api test suit", () => {
     });
     agent.destroy();
     expect(agent.getAllConversation().length).toBe(0);
-    expect(WebSocketClient.prototype.close).toHaveBeenCalledTimes(1);
   });
 });

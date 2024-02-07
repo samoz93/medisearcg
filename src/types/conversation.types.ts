@@ -57,7 +57,7 @@ interface IArticle {
 export interface IArticlesResponse extends ICommonEventOrResponse {
   event: "articles";
   articles: IArticle[];
-  lastResponse: ILlmResponse;
+  lastResponse?: ILlmResponse;
 }
 
 type IErrorCodes =

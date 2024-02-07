@@ -21,8 +21,8 @@ export class Agent {
     this.client = new WebSocket(
       "wss://public.backend.medisearch.io:443/ws/medichat/api"
     );
+
     this.client.on("error", (err) => {
-      console.log("Error", err);
       this._isReady.next(false);
       this._isReady.complete();
     });
@@ -63,15 +63,13 @@ export class Agent {
   ) {
     const ok = await this.isReady();
 
-    console.log("OK", ok);
-
     // Await the client to be ready
     if (!ok) {
       throw new Error("Connection is closed. Please try again later.");
     }
 
     // Odd number is for the AI response
-    if ((options.previousConversations?.length ?? 0) % 2 !== 0) {
+    if ((options.previousConversations?.length || 0) % 2 !== 0) {
       throw new Error(
         "The conversation history is not in the right format. It should be in the format user, agent, user, agent, etc., The last message should be for the agent such as the next message you send will be for the user"
       );
@@ -79,9 +77,7 @@ export class Agent {
 
     // Generate a new UUID for the conversation
     const uuid = this.generateID();
-    this.client.on("message", (data) => {
-      console.log("AAAA", data.toString());
-    });
+
     // Create a new conversation
     const convo = new Conversation(
       {
@@ -89,10 +85,8 @@ export class Agent {
         uuid,
         client: this.client,
       },
-      {
-        ...options.settings,
-        previousConversations: options.previousConversations || [],
-      },
+      options.settings,
+      options.previousConversations || [],
       interruptOnOverlappingRequest
     );
 
